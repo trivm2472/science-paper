@@ -6,8 +6,7 @@ function PaperComment({name, commentContent}) {
         borderColor: "gray",
         paddingLeft: 10,
         marginTop: 20,
-        borderRadius: 30,
-        marginRight: 30,
+        borderRadius: 10,
         backgroundColor: '#E8F8FA'
       }}
     >

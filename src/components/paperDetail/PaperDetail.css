@@ -1,3 +1,28 @@
 .edit-button:hover {
   cursor: pointer;
 }
+
+.paper-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.paper-save-button {
+  padding: 0 5%;
+  display: flex;
+  flex-flow: row-reverse;
+}
+
+.css-b62m3t-container {
+  width: 70%;
+  border-radius: 0px;
+}
+.css-13cymwt-control {
+  border-top-left-radius: 0px!important;
+  border-bottom-left-radius: 0px!important;
+}
+.css-13cymwt-control:hover {
+  border-radius: 0px!important;
+}

@@ -37,13 +37,17 @@ function HomePage() {
 
   useEffect(() => {
     const fetchPapers = async() => {
-      const response = await axios.get(`${SERVER_URL}/api/papers`);
+      const response = await axios.get(`${SERVER_URL}/api/papers`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
       if (response.status === 200) {
         setPapers(response.data.data);
       }
     }
     fetchPapers();
-  }, [])
+  }, [accessToken])
 
   return (
     <div style={{ display: "flex", flexDirection: "row" }}>
