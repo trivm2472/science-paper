@@ -1,30 +1,37 @@
 import React from 'react';
 import './HomePageSideBar.css';
 import logout from '../../../logout.png'
-import { useCookies } from 'react-cookie';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { userLogout } from '../../../reducers/currentUserSlice';
 
 function HomePageSideBar(props) {
   const user = props.user;
-  const [cookies, setCookie, removeCookie] = useCookies(['user']);
   const navigate = useNavigate();
-  function LogOut(){
-    //Todo
-    removeCookie('username', { path: '/' });
-    removeCookie('password', { path: '/' });
-    navigate('/');
+  const dispatch = useDispatch();
 
+  function LogOut() {
+    //Todo
+    localStorage.removeItem('user');
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    dispatch(userLogout());
+    navigate('/');
   };
+
   return (
     <div className="sidebar">
-      <div style={{ display: "flex", flexDirection: "row", alignItems: "center"}}>
+      <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between"}}>
       <h2>{user.name}</h2>
-      <img className='logout-button' src={logout} alt="Logout" style={{ height: 30, width: 30, marginLeft: 110}} onClick={LogOut}/>
+      <img className='logout-button' src={logout} alt="Logout" style={{ height: 30, width: 30 }} onClick={LogOut}/>
       </div>
-      <p>Email: {user.email}</p>
+      <hr />
+      <h3>Username</h3>
+      <p>{user.username}</p>
       <hr />
       <h3>Role</h3>
       <p>{user.role}</p>
+      <hr />
     </div>
   );
 }
