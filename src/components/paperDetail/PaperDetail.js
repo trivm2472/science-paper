@@ -110,7 +110,7 @@ function PaperDetail() {
       }
     }
     const fetchPaperComment = async() => {
-      const response = await axios.get(`${SERVER_URL}/api/papers/${id}/reviews`, {
+      const response = await axios.get(`${SERVER_URL}/api/papers/${id}/reviews/${user.id}`, {
         headers: {
           'Authorization': `Bearer ${accessToken}`
         }
@@ -121,7 +121,7 @@ function PaperDetail() {
     }
     fetchPaperInfo();
     fetchPaperComment();
-  }, [id, accessToken]);
+  }, [id, accessToken, user.id]);
 
   useEffect(() => {
     const fetchTrackNameList = async() => {
@@ -184,11 +184,11 @@ function PaperDetail() {
   };
 
   const handlePaperStatusChange = (event) => {
-    setPaperStatus(event.target.value);
+    if (user.role === 'editor_role') setPaperStatus(event.target.value);
   };
 
   const handlePaperFinalResultChange = (event) => {
-    setPaperFinalResult(event.target.value);
+    if (user.role === 'editor_role') setPaperFinalResult(event.target.value);
   }
 
   const handleAuthorChange = (event) => {
@@ -207,6 +207,7 @@ function PaperDetail() {
     }
 
     const updatePaper = async() => {
+      console.log(authorList);
       await axios.put(`${SERVER_URL}/api/papers/${id}`,
       {
         name: paperName,
@@ -248,6 +249,7 @@ function PaperDetail() {
   const handleAssignReviewers = () => {
     const updateReviewer = async() => {
       const reviewerIds = paperReviewerList.map((reviewer) => reviewer.value);
+      console.log(reviewerIds);
       await axios.post(`${SERVER_URL}/api/papers/${id}`, reviewerIds, 
       {
         headers: {
