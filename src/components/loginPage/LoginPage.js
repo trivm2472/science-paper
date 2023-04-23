@@ -35,7 +35,7 @@ function LoginPage() {
       
       if (response.status === 200) {
         const data = response.data.data;
-        const user = { username: data.username, role: data.role, name: data.name };
+        const user = { id: data.id, username: data.username, role: data.role, name: data.name };
         const accessToken = data.accessToken;
         const refreshToken = data.refreshToken;
         localStorage.setItem('user', JSON.stringify(user));

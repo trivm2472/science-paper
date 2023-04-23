@@ -76,6 +76,9 @@ function PaperDetail() {
   const [paperAuthorList, setPaperAuthorList] = useState([]);
   const [paperReviewerList, setPaperReviewerList] = useState([]);
   const [paperCommentList, setPaperCommentList] = useState([]);
+  const [appropriateness, setAppropriateness] = useState('');
+  const [contribution, setContribution] = useState('');
+  const [correctness, setCorrectness] = useState('');
 
   useEffect(() => {
     const fetchPaperInfo = async() => {
@@ -156,6 +159,18 @@ function PaperDetail() {
     fetchReviewerList();
   }, [accessToken]);
 
+  const handleChangeAppropriateness = (event) => {
+    setAppropriateness(event.target.value);
+  }
+
+  const handleChangeContribution = (event) => {
+    setContribution(event.target.value);
+  }
+
+  const handleChangeCorrectness = (event) => {
+    setCorrectness(event.target.value);
+  }
+
   const handleNameChange = (event) => {
     setPaperName(event.target.value);
   };
@@ -232,9 +247,7 @@ function PaperDetail() {
 
   const handleAssignReviewers = () => {
     const updateReviewer = async() => {
-      console.log(paperReviewerList);
       const reviewerIds = paperReviewerList.map((reviewer) => reviewer.value);
-      console.log(reviewerIds);
       await axios.post(`${SERVER_URL}/api/papers/${id}`, reviewerIds, 
       {
         headers: {
@@ -254,6 +267,33 @@ function PaperDetail() {
     updateReviewer();
   }
 
+  const handleSendComment = () => {
+    const sendComment = async() => {
+      await axios.post(`${SERVER_URL}/api/papers/${id}/reviews`, 
+      {
+        reviewerId: user.id,
+        appropriateness: appropriateness,
+        contribution: contribution,
+        correctness: correctness
+      }, 
+      {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      }).then((response) => {
+        if (response.status === 200) {
+          alert('Send comment successful.');
+        } else {
+          alert('Some errors occured while sending comment!');
+        }
+      }).catch((errors) => {
+        alert('Some errors occured while sending comment!');
+        console.log(errors);
+      });
+    }
+    sendComment();
+  }
+
   const authorOptions = authorList.map((author) => ({ value: author.id, label: author.name }));
   const reviewerOptions = reviewerList.map((reviewer) => ({ value: reviewer.id, label: reviewer.name })); 
 
@@ -263,7 +303,7 @@ function PaperDetail() {
         user={{ name: user.name, role: user.role, username: user.username }}
       />
       <div style={{ padding: "40px", width: "100%" }}>
-        <h2 style={{"marginBottom": "20px"}}>Paper information</h2>
+        <h2 style={{"marginBottom": "20px", "padding": "0 5%"}}>Paper information</h2>
         <div className="paper-info">
           <InputGroup style={{"width": "90%", "marginBottom": "10px"}}>
             <InputGroup.Text style={{"width": "30%"}}>Paper name</InputGroup.Text>
@@ -312,7 +352,7 @@ function PaperDetail() {
         </div>
         {(user.role === 'track_chair_role') ? (
           <>
-            <h2 style={{"marginBottom": "20px"}}>Assign reviewers</h2>
+            <h2 style={{"padding": "0 5%", "marginBottom": "20px"}}>Assign reviewers</h2>
             <div className="paper-info">
               <InputGroup style={{"width": "90%", "marginBottom": "10px"}}>
                 <InputGroup.Text style={{"width": "30%"}}>Reviewers</InputGroup.Text>
@@ -327,14 +367,46 @@ function PaperDetail() {
           ) : (
             <></>
           )} 
+        {user.role === 'reviewer_role' ? (
+          <>
+            <div>
+              <h2 style={{"padding": "0 5%"}}>Write comment</h2>
+              <div style={{"padding": "0 5%", "marginBottom": "10px"}}>
+                <Form.Group>
+                  <Form.Label>Appropriateness</Form.Label>
+                  <Form.Control as="textarea" rows={1} placeholder="Enter comment on appropriateness criteria"
+                    value={appropriateness} onChange={handleChangeAppropriateness}/>
+                </Form.Group>
+                <Form.Group>
+                  <Form.Label>Contribution</Form.Label>
+                  <Form.Control as="textarea" rows={1} placeholder="Enter comment on contribution criteria"
+                    value={contribution} onChange={handleChangeContribution}/>
+                </Form.Group>
+                <Form.Group>
+                  <Form.Label>Correctness</Form.Label>
+                  <Form.Control as="textarea" rows={1} placeholder="Enter comment on correctness criteria"
+                    value={correctness} onChange={handleChangeCorrectness}/>
+                </Form.Group>
+              </div>
+              <div className="paper-save-button">
+                <Button variant="primary" onClick={handleSendComment}>Send comment</Button>
+              </div>
+            </div>
+          </>
+        ) : (
+          <></>
+        )}
+
         <div>
-          <h2>Comment</h2>
-          {paperCommentList.map((paperComment, index) => 
-            <PaperComment reviewerName={paperComment.reviewerName} 
-              appropriateness={paperComment.appropriateness} contribution={paperComment.contribution} 
-              correctness = {paperComment.correctness} 
-            key={index}/>
-          )}
+          <h2 style={{"padding": "0 5%"}}>Comment</h2>
+          <div style={{"padding": "0 5%"}}>
+            {paperCommentList.map((paperComment, index) => 
+              <PaperComment reviewerName={paperComment.reviewerName} 
+                appropriateness={paperComment.appropriateness} contribution={paperComment.contribution} 
+                correctness = {paperComment.correctness} 
+              key={index}/>
+            )}
+          </div>
         </div>
       </div>
     </div>
