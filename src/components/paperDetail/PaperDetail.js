@@ -72,7 +72,9 @@ function PaperDetail() {
   const [paperFinalResult, setPaperFinalResult] = useState('');
   const [trackList, setTrackList] = useState([]);
   const [authorList, setAuthorList] = useState([]);
+  const [reviewerList, setReviewerList] = useState([]);
   const [paperAuthorList, setPaperAuthorList] = useState([]);
+  const [paperReviewerList, setPaperReviewerList] = useState([]);
 
   useEffect(() => {
     const fetchPaper = async() => {
@@ -91,6 +93,12 @@ function PaperDetail() {
           paperAuthors.push({ value: author.id, label: author.name })
         }
         setPaperAuthorList(paperAuthors);
+        const paperReviewers = [];
+        for (let i = 0; i < data.reviewerList.length; i++) {
+          const reviewer = data.reviewerList[i];
+          paperReviewers.push({ value: reviewer.id, label: reviewer.name });
+        }
+        setPaperReviewerList(paperReviewers);
       }
     }
     fetchPaper();
@@ -117,8 +125,19 @@ function PaperDetail() {
         setAuthorList(response.data.data);
       }
     }
+    const fetchReviewerList = async() => {
+      const response = await axios.get(`${SERVER_URL}/api/reviewers`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+      if (response.status === 200) {
+        setReviewerList(response.data.data);
+      }
+    }
     fetchTrackNameList();
     fetchAuthorList();
+    fetchReviewerList();
   }, [accessToken]);
 
   const handleNameChange = (event) => {
@@ -145,31 +164,89 @@ function PaperDetail() {
     setPaperAuthorList(event);
   }
 
-  const handleSave = (event) => {
-    console.log(paperName);
-    console.log(paperTrackId);
-    console.log(totalPage);
-    console.log(paperStatus);
-    console.log(paperAuthorList);
-    console.log(paperFinalResult);
+  const handleReviewerChange = (event) => {
+    setPaperReviewerList(event);
+  }
+
+  const handleSave = () => {
+    const authorList = [];
+    for (let i = 0; i < paperAuthorList.length; i++) {
+      const author = paperAuthorList[i];
+      authorList.push({ id: author.value, name: author.label });
+    }
+
+    const updatePaper = async() => {
+      await axios.put(`${SERVER_URL}/api/papers/${id}`,
+      {
+        name: paperName,
+        trackId: paperTrackId,
+        totalPage: totalPage,
+        status: paperStatus,
+        authorList: authorList,
+        finalResult: paperFinalResult
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      })
+      .then((response) => {
+        if (response.status === 200) {
+          alert('Paper infor has been updated successful.')
+        } else {
+          alert('Some errors occured while updating paper info!');
+        }
+      })
+      .catch((errors) => {
+        alert('Some errors occured while updating paper info!');
+        console.log(errors);
+      });
+      
+    }
+
     if (paperName === '') {
       alert('Paper name is empty');
     } else if (paperAuthorList.length === 0) {
       alert('Paper authors is empty');
     } else {
-
+      updatePaper();
     }
     // update to db
   };
 
-  const options = authorList.map((author) => ({ value: author.id, label: author.name }));
+  const handleAssignReviewers = () => {
+    const updateReviewer = async() => {
+      console.log(paperReviewerList);
+      const reviewerIds = paperReviewerList.map((reviewer) => reviewer.value);
+      console.log(reviewerIds);
+      await axios.post(`${SERVER_URL}/api/papers/${id}`, reviewerIds, 
+      {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      }).then((response) => {
+        if (response.status === 200) {
+          alert('Assign reviewers successful.');
+        } else {
+          alert('Some errors occured while updating reviewers!');
+        }
+      }).catch((errors) => {
+        alert('Some errors occured while updating reviewers!');
+        console.log(errors)
+      })
+    }
+    updateReviewer();
+  }
+
+  const authorOptions = authorList.map((author) => ({ value: author.id, label: author.name }));
+  const reviewerOptions = reviewerList.map((reviewer) => ({ value: reviewer.id, label: reviewer.name })); 
 
   return (
     <div style={{ display: "flex", flexDirection: "row" }}>
       <HomePageSideBar
         user={{ name: user.name, role: user.role, username: user.username }}
       />
-      <div style={{ padding: "40px" }}>
+      <div style={{ padding: "40px", width: "100%" }}>
         <h2 style={{"marginBottom": "20px"}}>Paper information</h2>
         <div className="paper-info">
           <InputGroup style={{"width": "90%", "marginBottom": "10px"}}>
@@ -204,7 +281,7 @@ function PaperDetail() {
           <InputGroup style={{"width": "90%", "marginBottom": "10px"}}>
             <InputGroup.Text style={{"width": "30%"}}>Authors</InputGroup.Text>
             <Select styles={{"width": "100%"}} placeholder="Select authors"
-              options={options} isMulti value={paperAuthorList} onChange={handleAuthorChange}/>
+              options={authorOptions} isMulti value={paperAuthorList} onChange={handleAuthorChange}/>
           </InputGroup>
           <InputGroup style={{"width": "90%", "marginBottom": "10px"}}>
             <InputGroup.Text style={{"width": "30%"}}>Final result</InputGroup.Text>
@@ -213,29 +290,33 @@ function PaperDetail() {
                 <option value="Pending">Pending</option>
             </Form.Select>
           </InputGroup>
-          
         </div>
         <div className="paper-save-button">
           <Button variant="primary" onClick={handleSave}>Save changes</Button>
         </div>
+        {(user.role === 'track_chair_role') ? (
+          <>
+            <h2 style={{"marginBottom": "20px"}}>Assign reviewers</h2>
+            <div className="paper-info">
+              <InputGroup style={{"width": "90%", "marginBottom": "10px"}}>
+                <InputGroup.Text style={{"width": "30%"}}>Reviewers</InputGroup.Text>
+                <Select styles={{"width": "100%"}} placeholder="Select reviewers"
+                  options={reviewerOptions} isMulti value={paperReviewerList} onChange={handleReviewerChange}/>
+              </InputGroup>
+            </div>
+            <div className="paper-save-button">
+              <Button variant="primary" onClick={handleAssignReviewers}>Assign reviewers</Button>
+            </div>
+          </>
+          ) : (
+            <></>
+          )} 
         <div>
           <h2>Comment</h2>
-          <PaperComment name={"Author 1"} commentContent ={`sad sadfx asd sadwq sad sad sadfx asd sadwq sad sad sadfx asd sadwq sad
-        sad sadfx asd sadwq sad sad sadfx asd sadwq sad sad sadfx asd sadwq sad
-        sad sadfx asd sadwq sad sad sadfx asd sadwq sad sad sadfx asd sadwq sad
-        sad sadfx asd sadwq sad sad sadfx asd sadwq sad`} />
-          <PaperComment name={"Author 3"} commentContent ={`sad sadfx asd sadwq sad sad sadfx asd sadwq sad sad sadfx asd sadwq sad
-        sad sadfx asd sadwq sad sad sadfx asd sadwq sad sad sadfx asd sadwq sad
-        sad sadfx asd sadwq sad sad sadfx asd sadwq sad sad sadfx asd sadwq sad
-        sad sadfx asd sadwq sad sad sadfx asd sadwq sad`} />
-          <PaperComment name={"Author 2"} commentContent ={`sad sadfx asd sadwq sad sad sadfx asd sadwq sad sad sadfx asd sadwq sad
-        sad sadfx asd sadwq sad sad sadfx asd sadwq sad sad sadfx asd sadwq sad
-        sad sadfx asd sadwq sad sad sadfx asd sadwq sad sad sadfx asd sadwq sad
-        sad sadfx asd sadwq sad sad sadfx asd sadwq sad`} />
-          <PaperComment name={"Author 4"} commentContent ={`sad sadfx asd sadwq sad sad sadfx asd sadwq sad sad sadfx asd sadwq sad
-        sad sadfx asd sadwq sad sad sadfx asd sadwq sad sad sadfx asd sadwq sad
-        sad sadfx asd sadwq sad sad sadfx asd sadwq sad sad sadfx asd sadwq sad
-        sad sadfx asd sadwq sad sad sadfx asd sadwq sad`} />
+          <PaperComment reviewerName={"Reviewer 1"} appropriateness={"Good"} contribution={"Good"} correctness = {"Good"} />
+          <PaperComment reviewerName={"Author 3"} appropriateness={"Good"} contribution={"Good"} correctness = {"Good"} />
+          <PaperComment reviewerName={"Author 2"} appropriateness={"Good"} contribution={"Good"} correctness = {"Good"} />
+          <PaperComment reviewerName={"Author 4"} appropriateness={"Good"} contribution={"Good"} correctness = {"Good"} />
         </div>
       </div>
     </div>

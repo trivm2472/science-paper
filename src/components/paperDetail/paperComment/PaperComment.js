@@ -1,4 +1,4 @@
-function PaperComment({name, commentContent}) {
+function PaperComment({ reviewerName, appropriateness, contribution, correctness }) {
   return (
     <div
       style={{
@@ -10,8 +10,10 @@ function PaperComment({name, commentContent}) {
         backgroundColor: '#E8F8FA'
       }}
     >
-      <h3>{name}</h3>
-      <p>{commentContent}</p>
+      <h3>{reviewerName}</h3>
+      <p>Appropriateness: {appropriateness}</p>
+      <p>Contribution: {contribution}</p>
+      <p>Correctness: {correctness}</p>
     </div>
   );
 }

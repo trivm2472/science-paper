@@ -26,3 +26,6 @@
 .css-13cymwt-control:hover {
   border-radius: 0px!important;
 }
+.form-control {
+  padding: .375rem 2.25rem .375rem .75rem!important;
+}
