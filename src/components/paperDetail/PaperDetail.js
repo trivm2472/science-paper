@@ -75,10 +75,15 @@ function PaperDetail() {
   const [reviewerList, setReviewerList] = useState([]);
   const [paperAuthorList, setPaperAuthorList] = useState([]);
   const [paperReviewerList, setPaperReviewerList] = useState([]);
+  const [paperCommentList, setPaperCommentList] = useState([]);
 
   useEffect(() => {
-    const fetchPaper = async() => {
-      const response = await axios.get(`${SERVER_URL}/api/papers/${id}`);
+    const fetchPaperInfo = async() => {
+      const response = await axios.get(`${SERVER_URL}/api/papers/${id}`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
       if (response.status === 200) {
         const data = response.data.data;
         setPaperName(data.name);
@@ -101,8 +106,19 @@ function PaperDetail() {
         setPaperReviewerList(paperReviewers);
       }
     }
-    fetchPaper();
-  }, [id]);
+    const fetchPaperComment = async() => {
+      const response = await axios.get(`${SERVER_URL}/api/papers/${id}/reviews`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+      if (response.status === 200) {
+        setPaperCommentList(response.data.data);
+      }
+    }
+    fetchPaperInfo();
+    fetchPaperComment();
+  }, [id, accessToken]);
 
   useEffect(() => {
     const fetchTrackNameList = async() => {
@@ -313,10 +329,12 @@ function PaperDetail() {
           )} 
         <div>
           <h2>Comment</h2>
-          <PaperComment reviewerName={"Reviewer 1"} appropriateness={"Good"} contribution={"Good"} correctness = {"Good"} />
-          <PaperComment reviewerName={"Author 3"} appropriateness={"Good"} contribution={"Good"} correctness = {"Good"} />
-          <PaperComment reviewerName={"Author 2"} appropriateness={"Good"} contribution={"Good"} correctness = {"Good"} />
-          <PaperComment reviewerName={"Author 4"} appropriateness={"Good"} contribution={"Good"} correctness = {"Good"} />
+          {paperCommentList.map((paperComment, index) => 
+            <PaperComment reviewerName={paperComment.reviewerName} 
+              appropriateness={paperComment.appropriateness} contribution={paperComment.contribution} 
+              correctness = {paperComment.correctness} 
+            key={index}/>
+          )}
         </div>
       </div>
     </div>
