@@ -27,25 +27,28 @@ function LoginPage() {
   const handleSubmit = (event) => {
     event.preventDefault();
     const login = async() => {
-      const response = await axios.post(`${SERVER_URL}/api/login`,
+      await axios.post(`${SERVER_URL}/api/login`,
       {
         "username": username,
         "password": password
-      });
-      
-      if (response.status === 200) {
-        const data = response.data.data;
-        const user = { id: data.id, username: data.username, role: data.role, name: data.name };
-        const accessToken = data.accessToken;
-        const refreshToken = data.refreshToken;
-        localStorage.setItem('user', JSON.stringify(user));
-        localStorage.setItem('accessToken', JSON.stringify(accessToken));
-        localStorage.setItem('refreshToken', JSON.stringify(refreshToken));
-        dispatch(userLogin({ user, accessToken, refreshToken }));
-        navigate("/home");
-      } else {
+      }).then((response) => {
+        if (response.status === 200) {
+          const data = response.data.data;
+          const user = { id: data.id, username: data.username, role: data.role, name: data.name };
+          const accessToken = data.accessToken;
+          const refreshToken = data.refreshToken;
+          localStorage.setItem('user', JSON.stringify(user));
+          localStorage.setItem('accessToken', JSON.stringify(accessToken));
+          localStorage.setItem('refreshToken', JSON.stringify(refreshToken));
+          dispatch(userLogin({ user, accessToken, refreshToken }));
+          navigate("/home");
+        } else {
+          setErrorMessage('Invalid username or password');
+        }
+      }).catch((errors) => {
+        console.log(errors);
         setErrorMessage('Invalid username or password');
-      }
+      });
     }
 
     if (username === '' || password === '') {
